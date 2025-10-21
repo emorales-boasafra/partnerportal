@@ -56,6 +56,17 @@ export function Header() {
               <Users className="h-4 w-4" />
               Leads
             </Link>
+            <Link
+              href="/deals"
+              className={`flex items-center gap-2 border-b-2 pb-4 pt-5 text-sm font-medium transition-colors ${
+                pathname === "/deals"
+                  ? "border-[#4a9d6f] text-[#2d5f4a]"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Deals
+            </Link>
           </nav>
         </div>
 

@@ -2,9 +2,11 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Select, Card, Row, Col, Statistic } from "antd"
+import { Select, Card, Row, Col, Statistic, Table, Spin, Empty } from "antd"
 import { Bar, Line } from "react-chartjs-2"
 import { useEffect, useRef, useState } from "react"
+import { getDealsClientService } from "@/lib/pipedrive/client-service"
+import type { StandardDeal } from "@/lib/pipedrive/mapping"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -191,6 +193,55 @@ export default function DashboardPage() {
     },
   }
 
+  // Pipedrive deals state (client-side fetch)
+  const [deals, setDeals] = useState<StandardDeal[] | null>(null)
+  const [loadingDeals, setLoadingDeals] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    async function loadDeals() {
+      try {
+        setLoadingDeals(true)
+        const standardResponse = await getDealsClientService({
+          page: 1,
+          pageSize: 10
+        })
+        
+        if (!mounted) return
+        
+        setDeals(standardResponse.data)
+      } catch (e) {
+        console.error('Dashboard Service Error:', e)
+        if (mounted) setDeals([])
+      } finally {
+        if (mounted) setLoadingDeals(false)
+      }
+    }
+    loadDeals()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const dealsColumns = [
+    { title: 'Title', dataIndex: 'title', key: 'title' },
+    { title: 'Value', dataIndex: 'formattedValue', key: 'formattedValue' },
+    { title: 'Status', dataIndex: 'status', key: 'status', 
+      render: (status: string) => (
+        <span className={`px-2 py-1 rounded text-xs ${
+          status === 'won' ? 'bg-green-100 text-green-800' :
+          status === 'lost' ? 'bg-red-100 text-red-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
+          {status.toUpperCase()}
+        </span>
+      )
+    },
+    { title: 'Contact', dataIndex: ['contact', 'name'], key: 'contact' },
+    { title: 'Organization', dataIndex: ['organization', 'name'], key: 'organization' },
+    { title: 'Owner', dataIndex: ['owner', 'name'], key: 'owner' },
+  ]
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
@@ -290,6 +341,29 @@ export default function DashboardPage() {
                   )
                 })}
               </div>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} className="mt-4">
+          <Col xs={24} lg={12}>
+            <Card title="Recent Deals (Pipedrive)">
+              {loadingDeals ? (
+                <div className="flex items-center justify-center py-10">
+                  <Spin />
+                </div>
+              ) : deals == null ? (
+                <div className="py-10 text-center">
+                  <Empty description="No data" />
+                </div>
+              ) : (
+                <Table
+                  columns={dealsColumns}
+                  dataSource={deals.map((d: any) => ({ ...d, key: d.id }))}
+                  pagination={false}
+                  size="small"
+                />
+              )}
             </Card>
           </Col>
         </Row>
