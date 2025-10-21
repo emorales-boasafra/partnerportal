@@ -1,13 +1,13 @@
 "use client"
 
 import { Table } from "antd"
-import { UserOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons"
 import type { ColumnsType } from "antd/es/table"
 import { type LeadData } from "@/lib/mock-data"
 import { useState, useMemo, useEffect } from "react"
 import { getDealsClientService } from "@/lib/pipedrive/client-service"
 import { mapStandardResponseToLeadData } from "@/lib/pipedrive/mapping"
 import { TableSkeleton } from "@/components/ui/table-skeleton"
+import { DealExpandedRow } from "./deal-expanded-row"
 
 interface LostDealsTableProps {
   searchText: string
@@ -153,90 +153,7 @@ export function LostDealsTable({
   }, [searchText, yearFilter, stageFilter, lostDeals])
 
   const expandedRowRender = (record: LeadData) => {
-    return (
-      <div className="px-8 py-6">
-        <div className="mb-6 grid grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-start gap-2">
-              <UserOutlined className="text-gray-400 mt-1" />
-              <div>
-                <div className="text-xs text-gray-500">Contact</div>
-                <div className="font-medium">{record.contact.name}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <MailOutlined className="text-gray-400 mt-1" />
-              <div>
-                <div className="text-xs text-gray-500">Email</div>
-                <div className="font-medium">{record.contact.email}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <PhoneOutlined className="text-gray-400 mt-1" />
-              <div>
-                <div className="text-xs text-gray-500">Phone</div>
-                <div className="font-medium">{record.contact.phone}</div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-start gap-2">
-              <div className="text-gray-400 mt-1">📊</div>
-              <div>
-                <div className="text-xs text-gray-500">Current Stage</div>
-                <div className="font-medium">{record.stage}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="text-gray-400 mt-1">📅</div>
-              <div>
-                <div className="text-xs text-gray-500">Submission Date</div>
-                <div className="font-medium">{record.submissionDate}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="text-gray-400 mt-1">🏢</div>
-              <div>
-                <div className="text-xs text-gray-500">Acres</div>
-                <div className="font-medium">{record.acres}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Timeline */}
-        {record.progress && (
-          <div className="space-y-2">
-            <div className="text-xs text-gray-500 font-medium">Progress Timeline</div>
-            <div className="flex flex-wrap gap-3">
-              {record.progress.stages.map((stage, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div
-                    className={`h-3 w-3 rounded-full border-2 ${
-                      stage.completed
-                        ? "bg-green-500 border-green-500"
-                        : stage.current
-                          ? "bg-blue-500 border-blue-500"
-                          : "bg-gray-200 border-gray-300"
-                    }`}
-                  />
-                  <span
-                    className={`text-xs ${
-                      stage.completed || stage.current ? "text-gray-900 font-medium" : "text-gray-500"
-                    }`}
-                  >
-                    {stage.name}
-                  </span>
-                  {stage.date && (
-                    <span className="text-xs text-gray-400 ml-1">({stage.date})</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    )
+    return <DealExpandedRow record={record} />
   }
 
   const columns: ColumnsType<LeadData> = [

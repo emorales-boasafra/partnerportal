@@ -1,13 +1,13 @@
 "use client"
 
 import { Table } from "antd"
-import { UserOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons"
 import type { ColumnsType } from "antd/es/table"
 import { type LeadData } from "@/lib/mock-data"
 import { useState, useMemo, useEffect } from "react"
 import { getDealsClientService } from "@/lib/pipedrive/client-service"
 import { mapStandardResponseToLeadData } from "@/lib/pipedrive/mapping"
 import { TableSkeleton } from "@/components/ui/table-skeleton"
+import { DealExpandedRow } from "./deal-expanded-row"
 
 interface ActiveDealsTableProps {
   searchText: string
@@ -144,84 +144,7 @@ export function ActiveDealsTable({
   }, [searchText, yearFilter, stageFilter, allLoadedDeals])
 
   const expandedRowRender = (record: LeadData) => {
-    if (!record.progress) return null
-
-    const completedStages = record.progress.stages.filter((s) => s.completed).length
-    const totalStages = record.progress.stages.length
-    const currentIndex = record.progress.stages.findIndex((s) => s.current)
-    const nextIndex = currentIndex >= 0 && currentIndex + 1 < totalStages ? currentIndex + 1 : -1
-
-    return (
-      <div className="px-8 py-6">
-        <div className="mb-6 grid grid-cols-3 gap-8">
-          <div className="flex items-start gap-2">
-            <UserOutlined className="text-gray-400" />
-            <div>
-              <div className="text-xs text-gray-500">Contact</div>
-              <div className="font-medium">{record.contact.name}</div>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <MailOutlined className="text-gray-400" />
-            <div>
-              <div className="text-xs text-gray-500">Email</div>
-              <div className="font-medium">{record.contact.email}</div>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <PhoneOutlined className="text-gray-400" />
-            <div>
-              <div className="text-xs text-gray-500">Phone</div>
-              <div className="font-medium">{record.contact.phone}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative">
-          {/* Segmented progress bar: completed = green, next = dark gray, future = light gray */}
-          <div
-            className="mb-4 grid h-2 w-full overflow-hidden rounded-full"
-            style={{ gridTemplateColumns: `repeat(${totalStages}, minmax(0, 1fr))`, gap: 2 }}
-          >
-            {record.progress.stages.map((_, i) => (
-              <div
-                key={i}
-                className={
-                  i < completedStages
-                    ? "bg-green-600"
-                    : i === nextIndex
-                      ? "bg-gray-400"
-                      : "bg-gray-200"
-                }
-              />
-            ))}
-          </div>
-          <div className="flex justify-between">
-            {record.progress.stages.map((stage, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center"
-                style={{ width: `${100 / record.progress!.stages.length}%` }}
-              >
-                <div className="mb-2">
-                  {stage.completed ? (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-xs text-white">
-                      ✓
-                    </div>
-                  ) : stage.current ? (
-                    <div className="h-5 w-5 rounded-full border-4 border-green-600 bg-white" />
-                  ) : (
-                    <div className="h-5 w-5 rounded-full border-2 border-gray-300 bg-white" />
-                  )}
-                </div>
-                <div className="text-center text-xs font-medium text-gray-700">{stage.name}</div>
-                {stage.date && <div className="text-xs text-gray-500">{stage.date}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+    return <DealExpandedRow record={record} />
   }
 
   const columns: ColumnsType<LeadData> = [

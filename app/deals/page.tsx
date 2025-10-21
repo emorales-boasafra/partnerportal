@@ -18,18 +18,19 @@ export default function DealsPage() {
   const [completedPageSize, setCompletedPageSize] = useState(10)
   const [lostPageSize, setLostPageSize] = useState(10)
 
-  // For now, we'll use mock stages - in a real app, this could come from the active deals
+  // Actual stages from the Pipedrive API - can be expanded in the future
   const availableStages = useMemo(() => {
-    // This could be populated from API data or made dynamic
     return [
-      "Contact Form Submitted",
-      "Request for Services Submitted", 
-      "Agreement Sent",
-      "Service Contract Under Review",
-      "Soil Data Collection",
-      "Analyst Team",
-      "Report Complete/Not Paid",
-      "Won"
+      "Inbound Calls",           // order_nr: 0
+      "Contact Us Forms",        // order_nr: 1  
+      "Invitation Email",        // order_nr: 2
+      "RFS Submitted",           // order_nr: 3
+      "DocuSign",                // order_nr: 4
+      "Soil Team",               // order_nr: 5
+      "Analyst Team",            // order_nr: 6
+      "Report Complete",         // order_nr: 7
+      "Report Review NOT PAID",  // order_nr: 8
+      "Paid Accounts"            // order_nr: 9
     ]
   }, [])
 

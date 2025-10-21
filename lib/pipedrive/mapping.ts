@@ -191,42 +191,54 @@ export function mapPipedriveLeadToStandard(lead: PipedriveLead): StandardLead {
  * Map StandardDeal to LeadData (for backward compatibility)
  */
 export function mapStandardDealToLeadData(deal: StandardDeal): LeadData {
-  // Create basic progress stages
-  const allStages = [
-    'Contact Form Submitted',
-    'Request for Services Submitted', 
-    'Agreement Sent',
-    'Service Contract Under Review',
-    'Soil Data Collection',
-    'Analyst Team',
-    'Report Complete/Not Paid',
-    'Won'
+  // Define the complete pipeline progression based on the API data
+  // These are ordered by the stage_order_nr from the Pipedrive API
+  const pipelineStages = [
+    { name: "Inbound Calls", order: 0 },
+    { name: "Contact Us Forms", order: 1 },
+    { name: "Invitation Email", order: 2 },
+    { name: "RFS Submitted", order: 3 },
+    { name: "DocuSign", order: 4 },
+    { name: "Soil Team", order: 5 },
+    { name: "Analyst Team", order: 6 },
+    { name: "Report Complete", order: 7 },
+    { name: "Report Review NOT PAID", order: 8 },
+    { name: "Paid Accounts", order: 9 },
   ]
-
-  const currentStageIndex = Math.min(deal.stage?.orderNumber || 0, allStages.length - 1)
   
+  const currentStageName = deal.stage?.name || 'Unknown Stage'
+  const currentStageOrder = deal.stage?.orderNumber || 0
+  
+  // Create progress timeline showing all stages with their status
   const progress = {
-    stages: allStages.map((stageName, index) => ({
-      name: stageName,
-      completed: index < currentStageIndex,
-      current: index === currentStageIndex,
-      date: index <= currentStageIndex ? deal.dates.created.toLocaleDateString() : undefined,
-    }))
+    stages: pipelineStages.map((stage) => {
+      const isCompleted = stage.order < currentStageOrder
+      const isCurrent = stage.order === currentStageOrder
+      
+      return {
+        name: stage.name,
+        completed: isCompleted,
+        current: isCurrent,
+        date: isCompleted || isCurrent ? deal.dates.stageChanged?.toLocaleDateString() || deal.dates.created.toLocaleDateString() : undefined,
+      }
+    })
   }
 
-  // Determine stage color based on status
+  // Determine stage color based on status and stage order
   let stageColor = 'blue'
   if (deal.status === 'won') stageColor = 'green'
   else if (deal.status === 'lost') stageColor = 'red'
-  else if ((deal.stage?.orderNumber || 0) > 3) stageColor = 'orange'
-  else if ((deal.stage?.orderNumber || 0) > 1) stageColor = 'purple'
+  else if (currentStageOrder >= 9) stageColor = 'green'   // Paid Accounts (9)
+  else if (currentStageOrder >= 7) stageColor = 'orange'  // Report stages (7-8)
+  else if (currentStageOrder >= 5) stageColor = 'purple'  // Soil Team / Analyst Team (5-6)
+  else stageColor = 'blue' // Early stages (0-4)
 
   return {
     key: deal.id,
     leadName: deal.title,
     acres: '-', // We'll map this from custom fields later
     submissionDate: deal.dates.created.toLocaleDateString(),
-    stage: deal.stage?.name || 'Unknown Stage',
+    stage: currentStageName, // Use the real stage name
     stageColor,
     contact: deal.contact,
     progress,
