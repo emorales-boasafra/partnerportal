@@ -7,13 +7,16 @@ import { useState, useMemo } from "react"
 import { DealsFilters } from "@/components/deals/deals-filters"
 import { ActiveDealsTable } from "@/components/deals/active-deals-table"
 import { CompletedDealsTable } from "@/components/deals/completed-deals-table"
+import { LostDealsTable } from "@/components/deals/lost-deals-table"
 
 export default function DealsPage() {
   // Shared filter state
   const [searchText, setSearchText] = useState("")
   const [yearFilter, setYearFilter] = useState("All years")
   const [stageFilter, setStageFilter] = useState("All")
-  const [pageSize, setPageSize] = useState(10)
+  const [activePageSize, setActivePageSize] = useState(10)
+  const [completedPageSize, setCompletedPageSize] = useState(10)
+  const [lostPageSize, setLostPageSize] = useState(10)
 
   // For now, we'll use mock stages - in a real app, this could come from the active deals
   const availableStages = useMemo(() => {
@@ -60,8 +63,8 @@ export default function DealsPage() {
                   searchText={searchText}
                   yearFilter={yearFilter}
                   stageFilter={stageFilter}
-                  pageSize={pageSize}
-                  onPageSizeChange={setPageSize}
+                  pageSize={activePageSize}
+                  onPageSizeChange={setActivePageSize}
                 />
               ),
             },
@@ -73,6 +76,21 @@ export default function DealsPage() {
                   searchText={searchText}
                   yearFilter={yearFilter}
                   stageFilter={stageFilter}
+                  pageSize={completedPageSize}
+                  onPageSizeChange={setCompletedPageSize}
+                />
+              ),
+            },
+            {
+              key: "3",
+              label: "Lost",
+              children: (
+                <LostDealsTable
+                  searchText={searchText}
+                  yearFilter={yearFilter}
+                  stageFilter={stageFilter}
+                  pageSize={lostPageSize}
+                  onPageSizeChange={setLostPageSize}
                 />
               ),
             },

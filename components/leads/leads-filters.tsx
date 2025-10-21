@@ -12,8 +12,6 @@ interface LeadsFiltersProps {
   setYearFilter: (value: string) => void
   statusFilter: string
   setStatusFilter: (value: string) => void
-  activeLeadsCount: number
-  archivedLeadsCount: number // Keep for compatibility but not used
 }
 
 export function LeadsFilters({
@@ -22,8 +20,7 @@ export function LeadsFilters({
   yearFilter,
   setYearFilter,
   statusFilter,
-  setStatusFilter,
-  activeLeadsCount
+  setStatusFilter
 }: LeadsFiltersProps) {
   const [localSearchText, setLocalSearchText] = useState(searchText)
 
@@ -90,15 +87,6 @@ export function LeadsFilters({
             Clear all filters
           </button>
         )}
-      </div>
-
-      <div className="flex gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Active Leads:</span>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            {activeLeadsCount}
-          </Badge>
-        </div>
       </div>
 
       {hasActiveFilters && (

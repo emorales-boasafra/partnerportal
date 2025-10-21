@@ -13,12 +13,16 @@ interface CompletedDealsTableProps {
   searchText: string
   yearFilter: string
   stageFilter: string
+  pageSize: number
+  onPageSizeChange: (value: number) => void
 }
 
 export function CompletedDealsTable({
   searchText,
   yearFilter,
-  stageFilter
+  stageFilter,
+  pageSize,
+  onPageSizeChange
 }: CompletedDealsTableProps) {
   // Completed deals state
   const [completedDeals, setCompletedDeals] = useState<LeadData[]>([])
@@ -26,7 +30,6 @@ export function CompletedDealsTable({
   const [completedLoadingMore, setCompletedLoadingMore] = useState(false)
   const [completedHasMore, setCompletedHasMore] = useState(true)
   const [completedNextStart, setCompletedNextStart] = useState<number | string>(0)
-  const [completedPageSize] = useState(10) // Fixed page size for completed deals
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Load completed deals when component mounts
@@ -37,45 +40,36 @@ export function CompletedDealsTable({
     }
   }, [])
 
-  // Load completed deals - initial load
+  // Reload when page size changes
+  useEffect(() => {
+    if (isInitialized) {
+      setCompletedDeals([])
+      setCompletedNextStart(0)
+      setCompletedHasMore(true)
+      loadCompletedDeals()
+    }
+  }, [pageSize])
+
+  // Load completed deals - initial load (only won deals)
   const loadCompletedDeals = async () => {
     if (completedDeals.length > 0 && isInitialized) return // Already loaded
     
     setCompletedLoading(true)
     try {
-      // Make separate calls for won and lost deals, then merge
-      const [wonResponse, lostResponse] = await Promise.all([
-        getDealsClientService({ 
-          page: 1, 
-          pageSize: completedPageSize, 
-          status: 'won' 
-        }),
-        getDealsClientService({ 
-          page: 1, 
-          pageSize: completedPageSize, 
-          status: 'lost' 
-        })
-      ])
+      // Only get won deals now
+      const wonResponse = await getDealsClientService({ 
+        page: 1, 
+        pageSize: pageSize, 
+        status: 'won' 
+      })
       
       const wonLeadData = mapStandardResponseToLeadData(wonResponse)
-      const lostLeadData = mapStandardResponseToLeadData(lostResponse)
       
-      // Merge both arrays
-      const allCompletedDeals = [...wonLeadData, ...lostLeadData]
+      setCompletedDeals(wonLeadData)
+      setCompletedHasMore(wonResponse.pagination.hasMore)
       
-      setCompletedDeals(allCompletedDeals)
-      
-      // Check if either has more data
-      const hasMoreWon = wonResponse.pagination.hasMore
-      const hasMoreLost = lostResponse.pagination.hasMore
-      setCompletedHasMore(hasMoreWon || hasMoreLost)
-      
-      // Set next start position (use the larger of the two)
-      const wonNextStart = wonResponse.pagination.nextStart || completedPageSize
-      const lostNextStart = lostResponse.pagination.nextStart || completedPageSize
-      const nextStart = typeof wonNextStart === 'number' && typeof lostNextStart === 'number' 
-        ? Math.max(wonNextStart, lostNextStart) 
-        : wonNextStart || lostNextStart
+      // Set next start position
+      const nextStart = wonResponse.pagination.nextStart || pageSize
       setCompletedNextStart(nextStart)
       
     } catch (e) {
@@ -93,48 +87,30 @@ export function CompletedDealsTable({
     setCompletedLoadingMore(true)
     try {
       const nextStartNum = typeof completedNextStart === 'string' ? parseInt(completedNextStart) : completedNextStart
-      const currentPage = Math.floor(nextStartNum / completedPageSize) + 1
+      const currentPage = Math.floor(nextStartNum / pageSize) + 1
       
-      // Make separate calls for won and lost deals for the next page
-      const [wonResponse, lostResponse] = await Promise.all([
-        getDealsClientService({
-          page: currentPage,
-          pageSize: completedPageSize,
-          start: nextStartNum,
-          status: 'won'
-        }),
-        getDealsClientService({
-          page: currentPage,
-          pageSize: completedPageSize,
-          start: nextStartNum,
-          status: 'lost'
-        })
-      ])
+      // Only get won deals for the next page
+      const wonResponse = await getDealsClientService({
+        page: currentPage,
+        pageSize: pageSize,
+        start: nextStartNum,
+        status: 'won'
+      })
       
       const wonLeadData = mapStandardResponseToLeadData(wonResponse)
-      const lostLeadData = mapStandardResponseToLeadData(lostResponse)
       
       // Merge new data with existing
-      const newCompletedDeals = [...wonLeadData, ...lostLeadData]
-      const updatedDeals = [...completedDeals, ...newCompletedDeals]
+      const updatedDeals = [...completedDeals, ...wonLeadData]
       
       setCompletedDeals(updatedDeals)
-      
-      // Update pagination state
-      const hasMoreWon = wonResponse.pagination.hasMore
-      const hasMoreLost = lostResponse.pagination.hasMore
-      setCompletedHasMore(hasMoreWon || hasMoreLost)
+      setCompletedHasMore(wonResponse.pagination.hasMore)
       
       // Update next start position
       const wonNextStart = wonResponse.pagination.nextStart
-      const lostNextStart = lostResponse.pagination.nextStart
-      if (wonNextStart !== undefined || lostNextStart !== undefined) {
-        const nextStart = typeof wonNextStart === 'number' && typeof lostNextStart === 'number' 
-          ? Math.max(wonNextStart, lostNextStart) 
-          : wonNextStart || lostNextStart || (nextStartNum + completedPageSize)
-        setCompletedNextStart(nextStart)
+      if (wonNextStart !== undefined) {
+        setCompletedNextStart(wonNextStart)
       } else {
-        setCompletedNextStart(nextStartNum + completedPageSize)
+        setCompletedNextStart(nextStartNum + pageSize)
       }
       
     } catch (e) {
@@ -314,19 +290,39 @@ export function CompletedDealsTable({
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-gray-600">
           {completedLoading ? (
-            "Loading completed deals..."
+            "Loading won deals..."
           ) : (
             <>
-              Showing {filteredData.length} completed deals (won + lost)
+              Showing {filteredData.length} won deals
               {completedDeals.length > 0 && (
                 <span> (loaded {completedDeals.length} of all available)</span>
               )}
             </>
           )}
         </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>Page size:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              const newPageSize = Number(e.target.value)
+              onPageSizeChange(newPageSize)
+              // Reset data when page size changes
+              setCompletedDeals([])
+              setCompletedNextStart(0)
+              setCompletedHasMore(true)
+            }}
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
       </div>
       {completedLoading ? (
-        <TableSkeleton rows={completedPageSize} columns={4} />
+        <TableSkeleton rows={pageSize} columns={4} />
       ) : (
         <>
           <Table
@@ -354,7 +350,7 @@ export function CompletedDealsTable({
                     Loading more...
                   </>
                 ) : (
-                  `Load ${completedPageSize} more completed deals`
+                  `Load ${pageSize} more completed deals`
                 )}
               </button>
             </div>
