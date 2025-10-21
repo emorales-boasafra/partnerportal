@@ -5,6 +5,8 @@ export interface LeadData {
   submissionDate: string
   stage: string
   stageColor: string
+  // Optional: when a lead is lost, capture the reason
+  lostReason?: string
   contact: {
     name: string
     email: string
@@ -144,6 +146,63 @@ export const leadsData: LeadData[] = [
         { name: "Report Complete/Not Paid", completed: false },
         { name: "Won", completed: false },
       ],
+    },
+  },
+  // Lost deals mock data
+  {
+    key: "6",
+    leadName: "Golden Valley Farms",
+    acres: "100 acres",
+    submissionDate: "10/05/2025",
+    stage: "Lost",
+    stageColor: "red",
+    lostReason: "Internal Testing",
+    contact: {
+      name: "QA Team",
+      email: "qa@example.com",
+      phone: "(555) 555-5600",
+    },
+  },
+  {
+    key: "7",
+    leadName: "Redwood Ridge Holdings",
+    acres: "0 acres",
+    submissionDate: "10/08/2025",
+    stage: "Lost",
+    stageColor: "red",
+    lostReason: "Spam",
+    contact: {
+      name: "Unknown",
+      email: "spam@example.com",
+      phone: "(555) 555-5601",
+    },
+  },
+  {
+    key: "8",
+    leadName: "Prairie Creek Co-op",
+    acres: "245 acres",
+    submissionDate: "10/12/2025",
+    stage: "Lost",
+    stageColor: "red",
+    lostReason: "Submitted by Mistake",
+    contact: {
+      name: "Clerk Office",
+      email: "clerk@example.com",
+      phone: "(555) 555-5602",
+    },
+  },
+  {
+    key: "9",
+    leadName: "Silver Brook Agriculture",
+    acres: "380 acres",
+    submissionDate: "10/14/2025",
+    stage: "Lost",
+    stageColor: "red",
+    lostReason: "Split Submission",
+    contact: {
+      name: "Records Dept",
+      email: "records@example.com",
+      phone: "(555) 555-5603",
     },
   },
 ]

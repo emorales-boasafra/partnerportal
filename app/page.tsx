@@ -7,6 +7,7 @@ import { Bar, Line } from "react-chartjs-2"
 import { useEffect, useRef, useState } from "react"
 import { getDealsClientService } from "@/lib/pipedrive/client-service"
 import type { StandardDeal } from "@/lib/pipedrive/mapping"
+import { leadsData } from "@/lib/mock-data"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -250,29 +251,58 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
         </div>
 
-        <Row gutter={[16, 16]} className="mb-8">
+        <Row gutter={[12, 12]} className="mb-8">
           <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic title="In Process Deals" value={12} valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }} />
+            <Card styles={{ body: { padding: 16 } }}>
+              <div className="flex flex-col">
+                <Statistic
+                  title="In Process Deals"
+                  value={12}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+                <div className="my-2 h-px w-full bg-gray-200" />
+                <Statistic
+                  title="In Process Acres"
+                  value={5230}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+              </div>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic
-                title="In Process Acres"
-                value={5230}
-                valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
-              />
+            <Card styles={{ body: { padding: 16 } }}>
+              <div className="flex flex-col">
+                <Statistic
+                  title="Completed Deals"
+                  value={2}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+                <div className="my-2 h-px w-full bg-gray-200" />
+                <Statistic
+                  title="Completed Acres"
+                  value={871}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+              </div>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic title="Completed Deals" value={2} valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }} />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card>
-              <Statistic title="Completed Acres" value={871} valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }} />
+            <Card styles={{ body: { padding: 16 } }}>
+              <div className="flex flex-col">
+                <Statistic
+                  title="Lost Deals"
+                  value={leadsData.filter((l) => l.stage === "Lost").length}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+                <div className="my-2 h-px w-full bg-gray-200" />
+                <Statistic
+                  title="Lost Acres"
+                  value={leadsData
+                    .filter((l) => l.stage === "Lost")
+                    .reduce((sum, l) => sum + Number.parseInt(l.acres.replace(/[^0-9]/g, "")) || 0, 0)}
+                  valueStyle={{ fontSize: "2.5rem", fontWeight: "bold" }}
+                />
+              </div>
             </Card>
           </Col>
         </Row>
